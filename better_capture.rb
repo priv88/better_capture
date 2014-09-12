@@ -2,6 +2,7 @@ require "rubygems"
 require "nokogiri"
 require "open-uri"
 require "capybara"
+require "capybara-webkit"
 require "httparty"
 require "pp"
 require 'pry-byebug'
@@ -18,19 +19,20 @@ url.each do |link|
 	# binding.pry
 	main_link.start_cache
 	main_link.check_for_popups
-	binding.pry
-	main_link.check_for_zipcode
 	# binding.pry
-	main_link.check_for_state
-	
+	# main_link.check_for_zipcode
+	# binding.pry
+	main_link.check_for_state 
+	binding.pry
+	main_link.locate_state
 end
 
 
 #Procedures
 #Go to website
-#Try to find any address 
+#Try to find any address (zipcode)
 #Check if there are any links for Contact / Contact Us 
-#Try to find any address indicator (regex for zipcode)
+#Try to find any address indicator (regex for zipcode) repeat step 
 
 #regex for zipcode
 #^\d{5}(?:[-\s]\d{4})?$

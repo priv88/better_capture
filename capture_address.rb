@@ -2,6 +2,7 @@ require "rubygems"
 require "nokogiri"
 require "open-uri"
 require "capybara"
+require "capybara-webkit"
 require "httparty"
 require "pp"
 require 'pry-byebug'
@@ -11,13 +12,15 @@ require "csv"
 
 class CaptureAddress
 	
-attr_accessor :session, :url
+attr_accessor :session, :url, :state, :status
 
-STATES = ["Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", "Connecticut", "Delaware", "Florida", "Georgia", "Hawaii", "Idaho", "Illinois", "Indiana", "Iowa", "Kansas", "Kentucky", "Louisiana", "Maine", "Maryland", "Massachusetts", "Michigan", "Minnesota", "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada", "New Hampshire", "New Jersey", "New Mexico", "New York", "North Carolina", "North Dakota", "Ohio", "Oklahoma", "Oregon", "Pennslyvania", "Rhode Island", "South Carolina", "South Dakota", "Tennessee", "Texas", "Utah", "Vermont", "Virginia", "Washington", "West Virginia", "Wisconsin", "Wyoming", "Guam", "Puerto Rico", "Virgin Islands", "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY", "GU", "PR", "VI"]
+STATES = ["CA", "California", "NY", "New York", "CT", "Connecticut", "TX", "Texas", "UT", "Utah", "MA", "Massachusetts", "VA", "Virginia", "WA", "Washington", "IL", "Illinois", "FL", "Florida", "PA", "Pennslyvania", "NJ", "New Jersey", "MD", "Maryland", "CO", "Colorado", "DE", "Delaware", "MI", "Michigan", "RI", "Rhode Island", "AZ", "Arizona", "AL", "AK",  "AR", "GA", "HI", "ID", "IN", "IA", "KS", "KY", "LA", "ME", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NM",  "NC", "ND", "OH", "OK", "OR", "SC", "SD", "TN", "VT", "WV", "WI", "WY", "GU", "PR", "VI", "Alabama", "Alaska", "Arkansas",  "Georgia", "Hawaii", "Idaho", "Indiana", "Iowa", "Kansas", "Kentucky", "Louisiana", "Maine", "Minnesota", "Mississippi", "Missouri", "Montana", "Nebraska", "Nevada", "New Hampshire", "New Mexico", "North Carolina", "North Dakota", "Ohio", "Oklahoma", "Oregon",  "South Carolina", "South Dakota", "Tennessee", "Vermont", "West Virginia", "Wisconsin", "Wyoming", "Guam", "Puerto Rico", "Virgin Islands"]
 
 	def initialize(link_url)
 		@session = Capybara::Session.new(:selenium)
 		@url = link_url
+		@state = nil
+		@status = false
 	end
 
 	def escape_advertisements
@@ -57,25 +60,34 @@ STATES = ["Alabama", "Alaska", "Arizona", "Arkansas", "California", "Colorado", 
 
 	def check_for_zipcode
 		regex = /^\d{5}(?:[-\s]\d{4})?$/
-		@session.has_content?(regex)
+		@status = true if @session.has_content?(regex)
 	end
 
 	def check_for_state
-		status = false
 		STATES.each do |state|
-			status = true if @session.has_content?(', ' + state)
-			break if status
+			if @session.has_content?(', ' + state)
+				@status = true
+				@state = state
+			end
+			break if @status
 		end
-		status
+		puts @state
 	end
 
 	def locate_text
 		@session.all(:text => /^\d{5}(?:[-\s]\d{4})?$/)
 	end
 
+	def locate_state
+		
+		# @session.all(:xpath, '//p[text()=@state]')
+		# @session.all(:xpath, '//div[text()=@state]')
+		@session.all('span', :text => "#{@state}")
+	end
+
 	def check_for_contact
 		@session.has_link?(/contact/i)
 	end
 
-
+    
 end
